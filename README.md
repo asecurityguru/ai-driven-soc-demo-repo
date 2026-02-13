@@ -505,34 +505,19 @@ nano ~/.config/Claude/claude_desktop_config.json
 
 Once Claude Desktop is restarted and showing the 🔌 icon, try these prompts:
 
-### 1. Event Search and Triage (Comprehensive Time-Based Searches)
+### 1. Alert Triage
 ```
-Get all critical and high severity alerts from [timeframe] using:
-search index=* (severity=critical OR severity=high) | table _time, * | sort -_time
-
-Show me all security events from the last 24 hours with full details using:
-search index=* earliest=-24h | table _time, * | sort -_time | head 100
+Get all high severity security alerts from the last 24 hours and prioritize them for me.
 ```
 
-### 2. Statistical Aggregation 
+### 2. Threat Investigation
 ```
-Get count and breakdown of critical/high severity alerts by category and action:
-search index=* (severity=critical OR severity=high) | stats count by severity, category, action | sort -count
-
-Show me alert statistics grouped by severity, category, and whether they were blocked:
-search index=* severity=* | stats count by severity, action, category | sort -severity, -count
+Investigate IP address 142.250.185.46 - what activity have we seen and is it malicious?
 ```
 
-### 3. Indicator-Based Hunting
+### 3. User Investigation
 ```
-Find all events related to IP 185.220.101.45 across all time:
-search index=* (src_ip="185.220.101.45" OR dest_ip="185.220.101.45") | table _time, * | sort -_time
-
-Show me all activity for user bwilson in the last 24 hours:
-search index=* user="bwilson" | table _time, * | sort -_time
-
-Find all traffic involving host 192.168.1.40:
-search index=* (src_ip="192.168.1.40" OR dest_ip="192.168.1.40") | table _time, * | sort -_time
+Analyze all activity for user "tdavis" in the last 24 hours. Is there any suspicious behavior?
 ```
 
 ### 4. Brute Force Detection
@@ -540,13 +525,9 @@ search index=* (src_ip="192.168.1.40" OR dest_ip="192.168.1.40") | table _time, 
 Are there any brute force attacks happening? Show me accounts with multiple failed login attempts.
 ```
 
-### 5. Correlation Queries
+### 5. Data Exfiltration
 ```
-Show me all events involving the same destination IP across different sources:
-search index=* dest_ip=* | stats count by dest_ip, src_ip, signature | where count > 1 | sort -count
-
-Find users involved in multiple critical incidents:
-search index=* severity=critical user=* | stats count by user, category | sort -count.
+Detect any unusual data transfers that might indicate data exfiltration.
 ```
 
 ### 6. Security Metrics
