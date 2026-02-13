@@ -1,0 +1,561 @@
+# AI-Powered SOC Demo with Splunk + MCP
+
+## Overview
+
+This demo showcases AI-assisted Security Operations Center (SOC) workflows using:
+- **Splunk Enterprise** (Docker) - SIEM platform with sample security data
+- **MCP Server** - Bridge between Claude and Splunk
+- **Claude Desktop/Cline** - AI assistant for SOC analysts
+
+---
+
+## Architecture
+
+```
+Claude Desktop (with MCP) 
+    ↓
+MCP Server (Python)
+    ↓
+Splunk Docker Container
+    ↓
+Security Events Sample Security Data
+```
+
+---
+
+## Prerequisites
+
+- Git installed
+- Docker Desktop installed and running
+- Python 3.10+
+- Claude Desktop installed
+- 8GB RAM minimum
+- 20GB disk space
+
+### 1. Install Docker Desktop for Windows
+
+1. Download from: https://www.docker.com/products/docker-desktop
+2. Install and restart your computer
+3. Ensure WSL 2 is enabled (Docker Desktop will prompt you)
+4. Start Docker Desktop and wait for it to be running
+
+### 2. Install Python
+
+1. Download Python 3.10 or higher from: https://www.python.org/downloads/
+2. **Important:** Check "Add Python to PATH" during installation
+3. Verify installation:
+
+```powershell
+python --version
+```
+
+### 3. Install Git (Optional, for cloning)
+
+Download from: https://git-scm.com/download/win
+
+---
+
+## Phase 1: Splunk Setup with Security Data
+
+### Setup Workflow Overview
+
+```
+Step 1: Launch Splunk (Docker)
+   ↓
+Step 2: Generate sample security data (Python script)
+   ↓
+Step 3: Import data into Splunk (Web UI or HEC)
+   ↓
+Step 4: Verify data in Splunk (Search queries)
+   ↓
+Step 5: Setup Python environment (MCP server)
+   ↓
+Step 6: Configure Claude Desktop (MCP config)
+   ↓
+Step 7: Work as a SOC Engineer
+```
+
+---
+
+## Step-by-Step Setup
+
+### Step 1: Create Project Directory
+
+```powershell
+# Create directory
+mkdir C:\splunk-mcp-soc-demo
+cd C:\splunk-mcp-soc-demo
+
+# Download all the files from the demo into this directory
+# (Use the files provided or download them)
+```
+
+---
+
+### Step 2: Launch Splunk Docker Container
+
+**Note:** We're running without a volume mount for simplicity and reliability.
+
+```powershell
+# Run Splunk Enterprise
+docker run -d `
+  -p 8000:8000 `
+  -p 8088:8088 `
+  -p 8089:8089 `
+  -e "SPLUNK_START_ARGS=--accept-license" `
+  -e "SPLUNK_PASSWORD=Admin123!" `
+  -e "SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com" `
+  -e "SPLUNK_HEC_TOKEN=abcd1234-abcd-1234-abcd-1234abcd1234" `
+  --name splunk `
+  splunk/splunk:latest
+
+# Wait for Splunk to start (takes 2-3 minutes)
+Write-Host "Waiting for Splunk to start..." -ForegroundColor Yellow
+Start-Sleep -Seconds 180
+
+# Check status
+docker logs splunk | Select-String "Ansible playbook complete"
+```
+
+---
+
+### Step 3: Verify Splunk Access
+
+1. **Open browser:** http://localhost:8000
+2. **Login with:**
+   - Username: `admin`
+   - Password: `Admin123!`
+
+---
+
+### Step 4: Generate Sample Security Data
+
+Create realistic security events:
+
+```powershell
+# Generate sample security events (49 events)
+python generate_sample_data.py
+```
+
+**What this creates:**
+- `sample_security_events.json` with 49 realistic security events
+- Attack scenarios: brute force, malware C2, data exfiltration, port scanning, privilege escalation
+- Normal traffic baseline for comparison
+
+**Expected output:**
+```
+✅ Generated 49 security events
+📁 Saved to: sample_security_events.json
+
+Event breakdown:
+  - Brute Force Attacks: 12 events
+  - Data Exfiltration: 1 event
+  - Malware C2 Traffic: 5 events
+  - Port Scanning: 9 events
+  - Privilege Escalation: 1 event
+  - Phishing: 1 event
+  - Normal Traffic: 20 events
+```
+
+---
+
+### Step 5: Import Data into Splunk via Web UI
+
+#### 1. Open Splunk Web UI
+
+```
+URL: http://localhost:8000
+
+Login credentials:
+  Username: admin
+  Password: Admin123!
+```
+
+#### 2. Upload the Data
+
+- Click **"Settings"** → **"Add Data"**
+- Click **"Upload"**
+- Click **"Select File"** and choose `sample_security_events.json`
+- Click **"Next"**
+
+#### 3. Configure Source Type (IMPORTANT!)
+
+On the **"Set Source Type"** page:
+
+- **Source Type:** Select **"_json"** from dropdown
+- Click **"Advanced"** to expand settings
+- **LINE_BREAKER field:**
+  - ⚠️ If you see a weird value like `\N+01+`, **DELETE IT**
+  - Leave it **blank** or set to: `([\r\n]+)`
+- **Event Breaks:** Should be **"Every Line"**
+- Click **"Next"** (NOT "Save As")
+
+#### 4. Set Input Settings
+
+- **Index:** Select **"main"**
+- Click **"Review"**
+
+#### 5. Submit
+
+- Review settings
+- Click **"Submit"**
+- You should see: **"File has been uploaded successfully"**
+
+#### 6. Verify Data Import
+
+Click **"Start Searching"** or go to **Search & Reporting**, then run:
+
+**Count events:**
+```spl
+index=main | stats count
+```
+
+**Expected result:** Should show **49** (or more if you uploaded multiple times)
+
+**View sample events:**
+```spl
+index=main | head 10
+```
+
+**Check by severity:**
+```spl
+index=main | stats count by severity
+```
+
+---
+
+### Step 6: Setup Python Virtual Environment
+
+```powershell
+# Create virtual environment
+python -m venv venv
+
+# Activate virtual environment
+.\venv\Scripts\Activate.ps1
+
+# If you get execution policy error, run this first:
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+
+# Then try activating again
+.\venv\Scripts\Activate.ps1
+
+# Install dependencies
+pip install --upgrade pip
+pip install -r requirements.txt
+```
+
+---
+
+### Step 7: Create Environment Configuration
+
+```powershell
+# Copy example env file
+copy .env.example .env
+
+# Edit .env file with your settings (optional, defaults work)
+notepad .env
+```
+
+---
+
+### Step 8: Test MCP Server
+
+```powershell
+# Make sure virtual environment is activated
+# Set environment variables for this session
+$env:SPLUNK_HOST="localhost"
+$env:SPLUNK_PORT="8089"
+$env:SPLUNK_USERNAME="admin"
+$env:SPLUNK_PASSWORD="Admin123!"
+
+# Test the MCP server (press Ctrl+C to stop)
+python splunk_mcp_server.py
+```
+
+**If you see no errors, the MCP server is working!** Press `Ctrl+C` to stop.
+
+---
+
+## Step 9: Configure Claude Desktop
+
+### 9.1: Install Claude Desktop
+
+**Download:** https://claude.ai/download
+
+---
+
+### 9.2: Determine Your Claude Desktop Installation Type
+
+**Windows - Check which version you have:**
+
+```powershell
+# Option 1: Check for Microsoft Store version
+Test-Path "$env:LOCALAPPDATA\Packages\Claude_pzs8sxrjxfjjc"
+
+# If returns TRUE = You have Microsoft Store version
+# If returns FALSE = You have Direct Download version
+```
+
+**Or check manually:**
+
+```powershell
+# Search for Claude executable
+Get-ChildItem -Path "$env:LOCALAPPDATA" -Recurse -Filter "Claude.exe" -ErrorAction SilentlyContinue | Select-Object FullName
+
+# If path contains "Packages\Claude_pzs8sxrjxfjjc" = Microsoft Store version
+# If path contains "Programs\Claude" = Direct Download version
+```
+
+**macOS/Linux:**
+
+```bash
+# Check config location
+ls ~/Library/Application\ Support/Claude/claude_desktop_config.json
+
+# If exists = Standard installation
+# If not exists = Check alternate locations
+```
+
+---
+
+### 9.3: Configure Based on Your Installation Type
+
+#### 🏪 For Microsoft Store Version (Windows)
+
+**Config File Location:**
+```
+%LOCALAPPDATA%\Packages\Claude_pzs8sxrjxfjjc\LocalCache\Roaming\Claude\claude_desktop_config.json
+```
+
+**Steps:**
+
+1. **Create/Edit config file:**
+
+```powershell
+# Open with notepad
+notepad "$env:LOCALAPPDATA\Packages\Claude_pzs8sxrjxfjjc\LocalCache\Roaming\Claude\claude_desktop_config.json"
+
+# Or navigate to folder
+explorer "$env:LOCALAPPDATA\Packages\Claude_pzs8sxrjxfjjc\LocalCache\Roaming\Claude"
+```
+
+2. **Add this configuration** (replace path with your actual path):
+
+**If file is EMPTY or NEW:**
+
+```json
+{
+  "mcpServers": {
+    "splunk-soc": {
+      "command": "C:\\splunk-mcp-soc-demo\\venv\\Scripts\\python.exe",
+      "args": [
+        "C:\\splunk-mcp-soc-demo\\splunk_mcp_server.py"
+      ],
+      "env": {
+        "SPLUNK_HOST": "localhost",
+        "SPLUNK_PORT": "8089",
+        "SPLUNK_USERNAME": "admin",
+        "SPLUNK_PASSWORD": "Admin123!"
+      }
+    }
+  }
+}
+```
+
+**If file ALREADY HAS CONTENT** (e.g., preferences):
+
+```json
+{
+  "preferences": {
+    "coworkScheduledTasksEnabled": false,
+    "sidebarMode": "chat"
+  },
+  "mcpServers": {
+    "splunk-soc": {
+      "command": "C:\\splunk-mcp-soc-demo\\venv\\Scripts\\python.exe",
+      "args": [
+        "C:\\splunk-mcp-soc-demo\\splunk_mcp_server.py"
+      ],
+      "env": {
+        "SPLUNK_HOST": "localhost",
+        "SPLUNK_PORT": "8089",
+        "SPLUNK_USERNAME": "admin",
+        "SPLUNK_PASSWORD": "Admin123!"
+      }
+    }
+  }
+}
+```
+
+3. **Save the file**
+
+4. **Restart Claude Desktop:**
+
+```powershell
+# Kill all Claude processes
+Get-Process | Where-Object {$_.Name -like "*Claude*"} | Stop-Process -Force
+
+# Wait a moment
+Start-Sleep -Seconds 3
+
+# Restart Claude Desktop from Start Menu
+```
+
+5. **Verify:** Look for MCP server in developer settings in Claude Desktop
+
+**Logs Location (for troubleshooting):**
+```powershell
+explorer "$env:LOCALAPPDATA\Packages\Claude_pzs8sxrjxfjjc\LocalCache\Roaming\Claude\logs"
+```
+
+---
+
+#### 💻 For Direct Download Version (Windows)
+
+**Config File Location:**
+```
+%APPDATA%\Claude\claude_desktop_config.json
+```
+
+**Steps:**
+
+1. **Create/Edit config file:**
+
+```powershell
+# Open with notepad
+notepad "$env:APPDATA\Claude\claude_desktop_config.json"
+
+# Or navigate to folder
+explorer "$env:APPDATA\Claude"
+```
+
+2. **Add this configuration:**
+
+```json
+{
+  "mcpServers": {
+    "splunk-soc": {
+      "command": "C:\\splunk-mcp-soc-demo\\venv\\Scripts\\python.exe",
+      "args": [
+        "C:\\splunk-mcp-soc-demo\\splunk_mcp_server.py"
+      ],
+      "env": {
+        "SPLUNK_HOST": "localhost",
+        "SPLUNK_PORT": "8089",
+        "SPLUNK_USERNAME": "admin",
+        "SPLUNK_PASSWORD": "Admin123!"
+      }
+    }
+  }
+}
+```
+
+3. **Save and restart Claude Desktop**
+
+4. **Verify:** Look for 🔌 icon
+
+**Logs Location:**
+```powershell
+explorer "$env:APPDATA\Claude\logs"
+```
+
+---
+
+#### 🍎 For macOS
+
+**Config File Location:**
+```
+~/Library/Application Support/Claude/claude_desktop_config.json
+```
+
+**Steps:**
+
+1. **Edit config file:**
+
+```bash
+nano ~/Library/Application\ Support/Claude/claude_desktop_config.json
+```
+
+2. **Add this configuration:**
+
+```json
+{
+  "mcpServers": {
+    "splunk-soc": {
+      "command": "/full/path/to/splunk-mcp-soc-demo/venv/bin/python",
+      "args": [
+        "/full/path/to/splunk-mcp-soc-demo/splunk_mcp_server.py"
+      ],
+      "env": {
+        "SPLUNK_HOST": "localhost",
+        "SPLUNK_PORT": "8089",
+        "SPLUNK_USERNAME": "admin",
+        "SPLUNK_PASSWORD": "Admin123!"
+      }
+    }
+  }
+}
+```
+
+3. **Save** (Ctrl+X, then Y, then Enter)
+
+4. **Restart Claude Desktop**
+
+---
+
+#### 🐧 For Linux
+
+**Config File Location:**
+```
+~/.config/Claude/claude_desktop_config.json
+```
+
+**Steps:**
+
+1. **Edit config file:**
+
+```bash
+nano ~/.config/Claude/claude_desktop_config.json
+```
+
+2. **Add configuration** (same format as macOS above)
+
+3. **Save and restart**
+
+---
+
+## Step 10: Testing the Integration
+
+Once Claude Desktop is restarted and showing the 🔌 icon, try these prompts:
+
+### 1. Alert Triage
+```
+Get all critical and high severity security alerts from the last 24 hours and prioritize them for me.
+```
+
+### 2. Threat Investigation
+```
+Investigate IP address 185.220.101.45 - what activity have we seen and is it malicious?
+```
+
+### 3. User Investigation
+```
+Analyze all activity for user "mjones" in the last 24 hours. Is there any suspicious behavior?
+```
+
+### 4. Brute Force Detection
+```
+Are there any brute force attacks happening? Show me accounts with multiple failed login attempts.
+```
+
+### 5. Data Exfiltration
+```
+Detect any unusual data transfers that might indicate data exfiltration.
+```
+
+### 6. Security Metrics
+```
+Give me a security operations summary for the last 24 hours with key metrics.
+```
+
+---
