@@ -265,7 +265,7 @@ python splunk_mcp_server.py
 
 ---
 
-### 8.2: Determine Your Claude Desktop Installation Type
+### 8.2: Determine Your Claude Desktop Installation Type (Powershell commands)
 
 **Windows - Check which version you have:**
 
