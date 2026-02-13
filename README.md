@@ -79,7 +79,7 @@ Step 7: Work as a SOC Engineer
 
 ## Step-by-Step Setup
 
-### Step 1: Create Project Directory
+### Step 1: Create Project Directory (Powershell commands on Windows)
 
 ```powershell
 # Create directory
