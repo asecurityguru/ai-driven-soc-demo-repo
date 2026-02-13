@@ -265,7 +265,7 @@ python splunk_mcp_server.py
 
 ---
 
-### 8.2: Determine Your Claude Desktop Installation Type (Powershell commands)
+### 8.2: Determine Your Claude Desktop Installation Type (Powershell commands for Windows)
 
 **Windows - Check which version you have:**
 
@@ -299,7 +299,7 @@ ls ~/Library/Application\ Support/Claude/claude_desktop_config.json
 
 ---
 
-### 8.3: Configure Based on Your Installation Type
+### 8.3: Configure Based on Your Installation Type (Powershell commands for Windows)
 
 #### 🏪 For Microsoft Store Version (Windows)
 
@@ -310,10 +310,10 @@ ls ~/Library/Application\ Support/Claude/claude_desktop_config.json
 
 **Steps:**
 
-1. **Create/Edit config file:**
+1. **Create/Edit config file:** 
 
 ```powershell
-# Open with notepad
+# Open with notepad (Powershell commands for Windows)
 notepad "$env:LOCALAPPDATA\Packages\Claude_pzs8sxrjxfjjc\LocalCache\Roaming\Claude\claude_desktop_config.json"
 
 # Or navigate to folder
