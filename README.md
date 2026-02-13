@@ -261,7 +261,7 @@ python splunk_mcp_server.py
 
 ## Step 8: Configure Claude Desktop
 
-### 8.1: Install Claude Desktop
+### 8.1: Install Claude Desktop and login to Claude and check MCP servers
 
 **Download:** https://claude.ai/download
 
