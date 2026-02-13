@@ -89,7 +89,7 @@ cd C:\splunk-mcp-soc-demo
 git clone https://github.com/asecurityguru/ai-driven-soc-demo-repo.git
 cd ai-driven-soc-demo-repo
 
-copy generate_sample_data.py requirements.txt splunk_mcp_server.py ..\ #Copying files from git repo to splunk-mcp-soc-demo directory
+copy generate_sample_data.py,requirements.txt,splunk_mcp_server.py ..\ #Copying files from git repo to splunk-mcp-soc-demo directory
 
 cd .. # Moving out of git repo
 
