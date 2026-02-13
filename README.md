@@ -246,28 +246,9 @@ pip install -r requirements.txt
 
 ---
 
-### Step 7: Create Environment Configuration
+### Step 7: Test MCP Server
 
 ```powershell
-# Copy example env file
-copy .env.example .env
-
-# Edit .env file with your settings (optional, defaults work)
-notepad .env
-```
-
----
-
-### Step 8: Test MCP Server
-
-```powershell
-# Make sure virtual environment is activated
-# Set environment variables for this session
-$env:SPLUNK_HOST="localhost"
-$env:SPLUNK_PORT="8089"
-$env:SPLUNK_USERNAME="admin"
-$env:SPLUNK_PASSWORD="Admin123!"
-
 # Test the MCP server (press Ctrl+C to stop)
 python splunk_mcp_server.py
 ```
@@ -276,15 +257,15 @@ python splunk_mcp_server.py
 
 ---
 
-## Step 9: Configure Claude Desktop
+## Step 8: Configure Claude Desktop
 
-### 9.1: Install Claude Desktop
+### 8.1: Install Claude Desktop
 
 **Download:** https://claude.ai/download
 
 ---
 
-### 9.2: Determine Your Claude Desktop Installation Type
+### 8.2: Determine Your Claude Desktop Installation Type
 
 **Windows - Check which version you have:**
 
@@ -318,7 +299,7 @@ ls ~/Library/Application\ Support/Claude/claude_desktop_config.json
 
 ---
 
-### 9.3: Configure Based on Your Installation Type
+### 8.3: Configure Based on Your Installation Type
 
 #### 🏪 For Microsoft Store Version (Windows)
 
@@ -452,7 +433,7 @@ explorer "$env:APPDATA\Claude"
 
 3. **Save and restart Claude Desktop**
 
-4. **Verify:** Look for 🔌 icon
+4. **Verify:** 
 
 **Logs Location:**
 ```powershell
@@ -524,7 +505,7 @@ nano ~/.config/Claude/claude_desktop_config.json
 
 ---
 
-## Step 10: Testing the Integration
+## Step 9: Testing the Integration
 
 Once Claude Desktop is restarted and showing the 🔌 icon, try these prompts:
 
