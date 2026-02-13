@@ -224,11 +224,6 @@ index=main | stats count
 index=main | head 10
 ```
 
-**Check by severity:**
-```spl
-index=main | stats count by severity
-```
-
 ---
 
 ### Step 6: Setup Python Virtual Environment
@@ -310,24 +305,22 @@ ls ~/Library/Application\ Support/Claude/claude_desktop_config.json
 
 #### 🏪 For Microsoft Store Version (Windows)
 
-**Config File Location:**
-```
-%LOCALAPPDATA%\Packages\Claude_pzs8sxrjxfjjc\LocalCache\Roaming\Claude\claude_desktop_config.json
-```
+# Step 1: Check if the directory exists
+Test-Path "$env:LOCALAPPDATA\Packages\Claude_pzs8sxrjxfjjc\LocalCache\Roaming\Claude"
 
-**Steps:**
+# If it returns FALSE, create the directory first:
+New-Item -ItemType Directory -Force -Path "$env:LOCALAPPDATA\Packages\Claude_pzs8sxrjxfjjc\LocalCache\Roaming\Claude"
 
-1. **Create/Edit config file:** 
+# Verify the directory in explorer
+explorer "$env:LOCALAPPDATA\Packages\Claude_pzs8sxrjxfjjc\LocalCache\Roaming\Claude"
 
-```powershell
-# Open with notepad (Powershell commands for Windows)
+# Step 2: Now create the config file
 notepad "$env:LOCALAPPDATA\Packages\Claude_pzs8sxrjxfjjc\LocalCache\Roaming\Claude\claude_desktop_config.json"
 
-# Or navigate to folder
-explorer "$env:LOCALAPPDATA\Packages\Claude_pzs8sxrjxfjjc\LocalCache\Roaming\Claude"
+# Notepad will ask: "Do you want to create a new file?" - Click YES
 ```
 
-2. **Add this configuration** (replace path with your actual path):
+# Step 3: Add this configuration in the Notepad file (replace path with your actual path):
 
 **If file is EMPTY or NEW:**
 
@@ -391,10 +384,6 @@ Start-Sleep -Seconds 3
 
 5. **Verify:** Look for MCP server in developer settings in Claude Desktop
 
-**Logs Location (for troubleshooting):**
-```powershell
-explorer "$env:LOCALAPPDATA\Packages\Claude_pzs8sxrjxfjjc\LocalCache\Roaming\Claude\logs"
-```
 
 ---
 
@@ -516,19 +505,34 @@ nano ~/.config/Claude/claude_desktop_config.json
 
 Once Claude Desktop is restarted and showing the 🔌 icon, try these prompts:
 
-### 1. Alert Triage
+### 1. Event Search and Triage (Comprehensive Time-Based Searches)
 ```
-Get all critical and high severity security alerts from the last 24 hours and prioritize them for me.
+Get all critical and high severity alerts from [timeframe] using:
+search index=* (severity=critical OR severity=high) | table _time, * | sort -_time
+
+Show me all security events from the last 24 hours with full details using:
+search index=* earliest=-24h | table _time, * | sort -_time | head 100
 ```
 
-### 2. Threat Investigation
+### 2. Statistical Aggregation 
 ```
-Investigate IP address 185.220.101.45 - what activity have we seen and is it malicious?
+Get count and breakdown of critical/high severity alerts by category and action:
+search index=* (severity=critical OR severity=high) | stats count by severity, category, action | sort -count
+
+Show me alert statistics grouped by severity, category, and whether they were blocked:
+search index=* severity=* | stats count by severity, action, category | sort -severity, -count
 ```
 
-### 3. User Investigation
+### 3. Indicator-Based Hunting
 ```
-Analyze all activity for user "mjones" in the last 24 hours. Is there any suspicious behavior?
+Find all events related to IP 185.220.101.45 across all time:
+search index=* (src_ip="185.220.101.45" OR dest_ip="185.220.101.45") | table _time, * | sort -_time
+
+Show me all activity for user bwilson in the last 24 hours:
+search index=* user="bwilson" | table _time, * | sort -_time
+
+Find all traffic involving host 192.168.1.40:
+search index=* (src_ip="192.168.1.40" OR dest_ip="192.168.1.40") | table _time, * | sort -_time
 ```
 
 ### 4. Brute Force Detection
@@ -536,9 +540,13 @@ Analyze all activity for user "mjones" in the last 24 hours. Is there any suspic
 Are there any brute force attacks happening? Show me accounts with multiple failed login attempts.
 ```
 
-### 5. Data Exfiltration
+### 5. Correlation Queries
 ```
-Detect any unusual data transfers that might indicate data exfiltration.
+Show me all events involving the same destination IP across different sources:
+search index=* dest_ip=* | stats count by dest_ip, src_ip, signature | where count > 1 | sort -count
+
+Find users involved in multiple critical incidents:
+search index=* severity=critical user=* | stats count by user, category | sort -count.
 ```
 
 ### 6. Security Metrics
