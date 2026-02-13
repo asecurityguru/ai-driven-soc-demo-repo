@@ -272,31 +272,31 @@ python splunk_mcp_server.py
 **Windows - Check which version you have:**
 
 ```powershell
-# Option 1: Check for Microsoft Store version
+#### Option 1: Check for Microsoft Store version
 Test-Path "$env:LOCALAPPDATA\Packages\Claude_pzs8sxrjxfjjc"
 
-# If returns TRUE = You have Microsoft Store version
-# If returns FALSE = You have Direct Download version
+#### If returns TRUE = You have Microsoft Store version
+#### If returns FALSE = You have Direct Download version
 ```
 
 **Or check manually:**
 
 ```powershell
-# Search for Claude executable
+#### Search for Claude executable
 Get-ChildItem -Path "$env:LOCALAPPDATA" -Recurse -Filter "Claude.exe" -ErrorAction SilentlyContinue | Select-Object FullName
 
-# If path contains "Packages\Claude_pzs8sxrjxfjjc" = Microsoft Store version
-# If path contains "Programs\Claude" = Direct Download version
+#### If path contains "Packages\Claude_pzs8sxrjxfjjc" = Microsoft Store version
+#### If path contains "Programs\Claude" = Direct Download version
 ```
 
 **macOS/Linux:**
 
 ```bash
-# Check config location
+#### Check config location
 ls ~/Library/Application\ Support/Claude/claude_desktop_config.json
 
-# If exists = Standard installation
-# If not exists = Check alternate locations
+#### If exists = Standard installation
+#### If not exists = Check alternate locations
 ```
 
 ---
