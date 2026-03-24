@@ -194,8 +194,9 @@ On the **"Set Source Type"** page:
 - **LINE_BREAKER field:**
   - ⚠️ If you see a weird value like `\N+01+`, **DELETE IT**
   - Leave it **blank** or set to: `([\r\n]+)`
-- **Event Breaks:** Should be **"Every Line"**
-- Click **"Next"** (NOT "Save As")
+- **Event Breaks:** Should be **"Every Line"** and Click **"Apply Settings"**
+- Click **"Save As"**, Keep Category as **"Structured"** and App as **"Search & Reporting"** and Click **"Save"** and then Click **"OK"** if override warning appears
+- Click **"Next"** 
 
 #### 4. Set Input Settings
 
